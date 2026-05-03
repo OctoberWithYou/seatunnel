@@ -68,7 +68,6 @@ import static org.apache.seatunnel.shade.com.google.common.base.Preconditions.ch
  * @see YashanDBTypeConverter
  * @see DataTypeConvertor
  */
-/** @deprecated instead by {@link YashanDBTypeConverter} */
 @Deprecated
 @AutoService(DataTypeConvertor.class)
 public class YashanDBDataTypeConvertor implements DataTypeConvertor<String> {

@@ -78,16 +78,15 @@ import java.util.stream.Collectors;
  *
  * @see YashanDBDialectFactory
  * @see YashanDBTypeConverter
- * @see YashanDBCatalog
  */
 @Slf4j
 public class YashanDBDialect implements JdbcDialect {
 
     /** Default fetch size for JDBC result sets. */
-    private static final int DEFAULT_FETCH_SIZE = 128;
+    private static final int DEFAULT_FETCH_SIZE = 1024;
 
     /** Field naming convention (original, uppercase, lowercase). */
-    public String fieldIde = FieldIdeEnum.ORIGINAL.getValue();
+    public String fieldIde;
 
     /** Whether to handle BLOB type as String instead of byte array. */
     private final boolean handleBlobAsString;
@@ -349,72 +348,6 @@ public class YashanDBDialect implements JdbcDialect {
     @Override
     public String tableIdentifier(TablePath tablePath) {
         return quoteIdentifier(tablePath.getSchemaAndTableName());
-    }
-
-    /**
-     * Estimates the approximate row count for a table or query.
-     *
-     * <p>For tables without WHERE clause, uses ALL_TABLES.NUM_ROWS statistics.
-     * For complex queries, uses SELECT COUNT(*) subquery.
-     *
-     * <p>When using table statistics, optionally runs ANALYZE TABLE first
-     * to get accurate statistics (unless skipAnalyze is true).
-     *
-     * @param connection the database connection
-     * @param table the source table information
-     * @return the estimated row count
-     * @throws SQLException if query execution fails
-     */
-    @Override
-    public Long approximateRowcntStatement(Connection connection, JdbcSourceTable table)
-            throws SQLException {
-        String query = table.getQuery();
-
-        boolean useTableStats =
-                StringUtils.isBlank(query)
-                        || (!query.toLowerCase().contains("where")
-                                && table.getTablePath() != null
-                                && !TablePath.DEFAULT
-                                        .getFullName()
-                                        .equals(table.getTablePath().getFullName()));
-
-        if (table.getUseSelectCount()) {
-            useTableStats = false;
-            if (StringUtils.isBlank(query)) {
-                query = "SELECT * FROM " + tableIdentifier(table.getTablePath());
-            }
-        }
-
-        if (useTableStats) {
-            TablePath tablePath = table.getTablePath();
-            String rowCountQuery =
-                    String.format(
-                            "select NUM_ROWS from all_tables where OWNER = '%s' AND TABLE_NAME = '%s' ",
-                            tablePath.getSchemaName(), tablePath.getTableName());
-            try (Statement stmt = connection.createStatement()) {
-                String analyzeTable =
-                        String.format(
-                                "analyze table %s compute statistics for table",
-                                tableIdentifier(tablePath));
-                if (!table.getSkipAnalyze()) {
-                    log.info("Split Chunk, approximateRowCntStatement: {}", analyzeTable);
-                    stmt.execute(analyzeTable);
-                } else {
-                    log.warn("Skip analyze, approximateRowCntStatement: {}", analyzeTable);
-                }
-                log.info("Split Chunk, approximateRowCntStatement: {}", rowCountQuery);
-                try (ResultSet rs = stmt.executeQuery(rowCountQuery)) {
-                    if (!rs.next()) {
-                        throw new SQLException(
-                                String.format(
-                                        "No result returned after running query [%s]",
-                                        rowCountQuery));
-                    }
-                    return rs.getLong(1);
-                }
-            }
-        }
-        return SQLUtils.countForSubquery(connection, query);
     }
 
     /**

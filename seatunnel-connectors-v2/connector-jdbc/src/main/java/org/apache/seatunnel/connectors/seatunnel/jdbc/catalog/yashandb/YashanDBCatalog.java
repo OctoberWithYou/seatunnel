@@ -332,6 +332,7 @@ public class YashanDBCatalog extends AbstractJdbcCatalog {
      *
      * <p>Queries ALL_TABLES view and excludes system tables:
      * <ul>
+     *   <li>System schemas: SYS, MDSYS, SYSTEM, etc.</li>
      *   <li>MDRT_* - Spatial index tables</li>
      *   <li>MDRS_* - Spatial reference tables</li>
      *   <li>MDXT_* - Spatial metadata tables</li>
@@ -347,7 +348,8 @@ public class YashanDBCatalog extends AbstractJdbcCatalog {
     @Override
     protected String getListTableSql(String databaseName) {
         return "SELECT OWNER, TABLE_NAME FROM ALL_TABLES"
-                + "  WHERE TABLE_NAME NOT LIKE 'MDRT_%'"
+                + "  WHERE OWNER NOT IN ('SYS', 'MDSYS', 'SYSTEM', 'DBSNMP', 'OUTLN', 'WMSYS', 'ORDSYS', 'EXFSYS', 'CTXSYS', 'XDB', 'OLAPSYS', 'ORDPLUGINS', 'SI_INFORMTN_SCHEMA', 'DIP', 'PERFSTAT')"
+                + "  AND TABLE_NAME NOT LIKE 'MDRT_%'"
                 + "  AND TABLE_NAME NOT LIKE 'MDRS_%'"
                 + "  AND TABLE_NAME NOT LIKE 'MDXT_%'"
                 + "  AND TABLE_NAME NOT LIKE 'SYS_IOT_OVER_%'";

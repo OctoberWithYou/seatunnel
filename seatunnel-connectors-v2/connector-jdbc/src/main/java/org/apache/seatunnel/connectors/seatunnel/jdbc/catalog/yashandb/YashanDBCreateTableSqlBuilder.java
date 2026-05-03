@@ -29,7 +29,6 @@ import org.apache.seatunnel.connectors.seatunnel.jdbc.internal.dialect.yashandb.
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -55,9 +54,9 @@ import java.util.stream.Collectors;
  * </ol>
  *
  * <p><b>Primary Key Handling:</b>
- * Primary key constraints are added inline within the CREATE TABLE statement.
- * A random 4-character suffix is appended to constraint names to avoid naming conflicts.
- * The constraint name is truncated to 25 characters if necessary.
+ * Primary key constraints are added inline within the CREATE TABLE statement
+ * using unnamed constraints. YashanDB automatically generates system constraint
+ * names (e.g., SYS_C_nnn) for unnamed primary keys.
  *
  * <p><b>Identifier Quoting:</b>
  * All identifiers (table names, column names) are quoted with double quotes (")
@@ -68,7 +67,7 @@ import java.util.stream.Collectors;
  * CREATE TABLE "SCHEMA"."TABLE" (
  *   "ID" NUMBER(10) NOT NULL,
  *   "NAME" VARCHAR(100),
- *   CONSTRAINT PK_TABLE_a1b2 PRIMARY KEY ("ID")
+ *   PRIMARY KEY ("ID")
  * );
  * COMMENT ON TABLE "SCHEMA"."TABLE" IS 'Table description';
  * COMMENT ON COLUMN "SCHEMA"."TABLE"."NAME" IS 'Column description';
@@ -235,46 +234,24 @@ public class YashanDBCreateTableSqlBuilder {
     /**
      * Builds the SQL fragment for a primary key constraint.
      *
-     * <p>The constraint is named using the primary key name with a random 4-character
-     * suffix to avoid naming conflicts when multiple constraints might have similar names.
-     * If the primary key name exceeds 25 characters, it is truncated.
-     *
-     * <p><b>Naming Convention:</b>
-     * <pre>
-     * CONSTRAINT {pk_name}_{random_suffix} PRIMARY KEY ("COL1", "COL2")
-     * </pre>
+     * <p>Uses an unnamed primary key constraint, allowing YashanDB to automatically
+     * generate a system-generated constraint name (e.g., SYS_C_nnn).
      *
      * <p><b>Example Output:</b>
      * <pre>
-     * CONSTRAINT PK_TABLE_a1b2 PRIMARY KEY ("ID")
+     * PRIMARY KEY ("ID")
+     * PRIMARY KEY ("ID", "NAME")
      * </pre>
      *
      * @param primaryKey the primary key definition
      * @return the SQL fragment for the primary key constraint
      */
     private String buildPrimaryKeySql(PrimaryKey primaryKey) {
-        // Generate random suffix to avoid constraint name conflicts
-        String randomSuffix = UUID.randomUUID().toString().replace("-", "").substring(0, 4);
         String columnNamesString =
                 primaryKey.getColumnNames().stream()
                         .map(columnName -> "\"" + columnName + "\"")
                         .collect(Collectors.joining(", "));
-
-        // Truncate constraint name if too long (max 25 chars for base name)
-        String primaryKeyStr = primaryKey.getPrimaryKey();
-        if (primaryKeyStr.length() > 25) {
-            primaryKeyStr = primaryKeyStr.substring(0, 25);
-        }
-
-        return CatalogUtils.getFieldIde(
-                "CONSTRAINT "
-                        + primaryKeyStr
-                        + "_"
-                        + randomSuffix
-                        + " PRIMARY KEY ("
-                        + columnNamesString
-                        + ")",
-                fieldIde);
+        return CatalogUtils.getFieldIde("PRIMARY KEY (" + columnNamesString + ")", fieldIde);
     }
 
     /**
