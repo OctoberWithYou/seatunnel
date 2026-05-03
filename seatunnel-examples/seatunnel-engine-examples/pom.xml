@@ -67,15 +67,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!--   YashanDB CDC connector - TODO: not yet supported   -->
-        <!--
-        <dependency>
-            <groupId>org.apache.seatunnel</groupId>
-            <artifactId>connector-cdc-yashandb</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        -->
-
         <dependency>
             <groupId>org.apache.seatunnel</groupId>
             <artifactId>connector-jdbc</artifactId>

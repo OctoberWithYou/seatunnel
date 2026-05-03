@@ -92,6 +92,12 @@
                 <sqlserver.version>9.2.1.jre8</sqlserver.version>
                 <phoenix.version>5.2.5-HBase-2.x</phoenix.version>
                 <oracle.version>12.2.0.1</oracle.version>
+
+                <!-- The maximum officially supported YashanDB version compatible with YashanDB JDBC 1.9.24 is 23.4.7.    -->
+
+                <!-- The JDBC and YStream versions of YashanDB must be exactly the same,
+                because YStream relies on JDBC to establish connections,
+                and the official requirements must be the same to ensure that there are no compatibility issues.   -->
                 <yashandb.jdbc.version>1.9.24</yashandb.jdbc.version>
                 <sqlite.version>3.39.3.0</sqlite.version>
                 <db2.version>db2jcc4</db2.version>

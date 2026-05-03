@@ -124,6 +124,7 @@
                 <version>${oracle.version}</version>
                 <scope>provided</scope>
             </dependency>
+
             <dependency>
                 <groupId>com.yashandb</groupId>
                 <artifactId>yashandb-jdbc</artifactId>
