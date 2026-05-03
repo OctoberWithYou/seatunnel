@@ -38,7 +38,6 @@
         <module>connector-cdc-oracle</module>
         <module>connector-cdc-opengauss</module>
         <module>connector-cdc-tidb</module>
-        <module>connector-cdc-yashandb</module>
     </modules>
 
     <properties>
